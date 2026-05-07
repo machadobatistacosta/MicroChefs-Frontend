@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OrderService } from '../../services/order.service';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-pedidos',
@@ -22,7 +22,7 @@ import { RouterModule } from '@angular/router';
           </div>
           <div class="order-footer">
              <span class="total">Total: R$ {{ p.valorTotal || 'N/A' }}</span>
-             <button class="btn btn-primary btn-sm" [routerLink]="['/acompanhar', p.id]">Acompanhar</button>
+             <button class="btn btn-primary btn-sm" (click)="irParaAcompanhamento(p.id)">Acompanhar</button>
           </div>
         </div>
       </div>
@@ -49,11 +49,16 @@ import { RouterModule } from '@angular/router';
 export class PedidosComponent implements OnInit {
   pedidos: any[] = [];
 
-  constructor(private orderService: OrderService) {}
+  constructor(private orderService: OrderService, private router: Router) {}
 
   ngOnInit(): void {
     this.orderService.getOrders().subscribe(data => {
       this.pedidos = data;
     });
+  }
+
+  irParaAcompanhamento(id: number) {
+    console.log('Navegando para o pedido:', id);
+    this.router.navigate(['/acompanhar', id]);
   }
 }

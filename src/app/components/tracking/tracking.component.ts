@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { OrderService } from '../../services/order.service';
+import { WebSocketService } from '../../services/websocket.service';
 
 @Component({
   selector: 'app-tracking',
@@ -78,23 +79,37 @@ export class TrackingComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private orderService: OrderService
+    private orderService: OrderService,
+    private webSocketService: WebSocketService
   ) {}
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      // For now we get all and filter, or we could add a getOrderById in service
-      this.orderService.getOrders().subscribe(data => {
-        this.pedido = data.find((p: any) => p.id === +id);
+      this.orderService.getOrders().subscribe({
+        next: (data) => {
+          this.pedido = data.find((p: any) => p.id === +id);
+          if (!this.pedido) console.error('Pedido não encontrado no banco:', id);
+        },
+        error: (err) => {
+          console.error('Erro ao buscar pedidos:', err);
+          alert('Erro ao carregar dados do pedido.');
+        }
       });
       
-      // Auto-refresh simulation
-      setInterval(() => {
-        this.orderService.getOrders().subscribe(data => {
-            this.pedido = data.find((p: any) => p.id === +id);
-        });
-      }, 5000);
+      this.webSocketService.getStatusUpdates().subscribe((update: any) => {
+        if (this.pedido && update.id === this.pedido.id) {
+          console.log('Update de status recebido via WS:', update);
+          
+          // Validação sugerida pelo Elcio (Blindagem no Front)
+          if (this.statusHierarchy.includes(update.statusPedido)) {
+            this.pedido.status = update.statusPedido;
+          } else {
+            console.error('ALERTA: Status inválido recebido via WebSocket:', update.statusPedido);
+            // Opcional: Mostrar um aviso sutil para o usuário ou apenas ignorar o dado sujo
+          }
+        }
+      });
     }
   }
 

@@ -47,7 +47,7 @@ export class MenuComponent implements OnInit {
 
     const pedido = {
       clienteId: 1, // Mocked for now
-      formaDePagamento: 'DEBITO',
+      formaDePagamento: 'CARTAO_DE_DEBITO',
       itens: this.carrinho
     };
 
