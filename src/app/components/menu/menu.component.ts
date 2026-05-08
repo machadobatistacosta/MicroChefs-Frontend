@@ -3,16 +3,19 @@ import { CommonModule } from '@angular/common';
 import { ProductService, Produto } from '../../services/product.service';
 import { OrderService, ItemPedido } from '../../services/order.service';
 
+import { FormsModule } from '@angular/forms';
+
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.css']
 })
 export class MenuComponent implements OnInit {
   produtos: Produto[] = [];
   carrinho: ItemPedido[] = [];
+  formaDePagamento: string = 'PIX';
 
   constructor(
     private productService: ProductService,
@@ -36,7 +39,6 @@ export class MenuComponent implements OnInit {
         precoProduto: produto.preco
       });
     }
-    alert(`${produto.nome} adicionado ao carrinho!`);
   }
 
   finalizarPedido(): void {
@@ -47,7 +49,7 @@ export class MenuComponent implements OnInit {
 
     const pedido = {
       clienteId: 1, // Mocked for now
-      formaDePagamento: 'CARTAO_DE_DEBITO',
+      formaDePagamento: this.formaDePagamento,
       itens: this.carrinho
     };
 

@@ -16,7 +16,7 @@ import { WebSocketService } from '../../services/websocket.service';
         <div class="status-stepper">
           <div class="step" [class.active]="isStatusAtLeast('CRIADO')">
             <div class="circle">1</div>
-            <div class="label">Criado</div>
+            <div class="label">Aguardando Pagamento</div>
           </div>
           <div class="line" [class.active]="isStatusAtLeast('PAGO')"></div>
           <div class="step" [class.active]="isStatusAtLeast('PAGO')">
@@ -35,10 +35,23 @@ import { WebSocketService } from '../../services/websocket.service';
           </div>
         </div>
 
-        <div class="status-detail text-center mt-4">
-            <h3 class="status-text">{{ pedido.status }}</h3>
+        <!-- Painel de Simulação de Pagamento -->
+        <div class="payment-simulation mt-5" *ngIf="pedido.status === 'CRIADO' || pedido.status === 'AGUARDANDO_PAGAMENTO'">
+          <div class="simulation-card text-center">
+            <h3>💳 Simulação de Pagamento</h3>
+            <p>Seu pedido está aguardando o pagamento via <strong>{{ pedido.formaDePagamento }}</strong>.</p>
+            <div class="mt-4">
+              <button class="btn btn-primary btn-lg" (click)="simularPagamento()">Pagar Agora (Simular)</button>
+            </div>
+            <p class="mt-3 text-muted small">Este é um ambiente de demonstração acadêmica.</p>
+          </div>
+        </div>
+
+        <div class="status-detail text-center mt-5">
+            <h3 class="status-text">{{ getFriendlyStatus(pedido.status) }}</h3>
             <p *ngIf="pedido.status === 'PRONTO'">Seu pedido está pronto para ser retirado!</p>
             <p *ngIf="pedido.status === 'EM_PREPARO'">O Chef está preparando sua refeição com carinho.</p>
+            <p *ngIf="pedido.status === 'PAGO'">Pagamento confirmado! Enviamos seu pedido para a cozinha.</p>
         </div>
 
         <button class="btn btn-secondary w-100 mt-4" routerLink="/pedidos">Voltar para meus pedidos</button>
@@ -70,7 +83,18 @@ import { WebSocketService } from '../../services/websocket.service';
     .status-text { color: var(--primary); font-size: 1.5rem; text-transform: uppercase; margin-bottom: 0.5rem; }
     .text-center { text-align: center; }
     .mt-4 { margin-top: 1.5rem; }
+    .mt-5 { margin-top: 2.5rem; }
     .w-100 { width: 100%; }
+
+    .simulation-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed var(--primary);
+      padding: 2rem;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    .simulation-card h3 { color: var(--primary); margin-bottom: 1rem; }
+    .small { font-size: 0.8rem; }
   `]
 })
 export class TrackingComponent implements OnInit {
@@ -111,6 +135,30 @@ export class TrackingComponent implements OnInit {
         }
       });
     }
+  }
+
+  simularPagamento(): void {
+    if (this.pedido) {
+      this.orderService.updateOrderStatus(this.pedido.id, 'PAGO').subscribe({
+        next: () => {
+          this.pedido.status = 'PAGO';
+          alert('Pagamento simulado com sucesso!');
+        },
+        error: (err) => console.error('Erro ao simular pagamento:', err)
+      });
+    }
+  }
+
+  getFriendlyStatus(status: string): string {
+    const labels: any = {
+      'CRIADO': 'Aguardando Pagamento',
+      'AGUARDANDO_PAGAMENTO': 'Aguardando Pagamento',
+      'PAGO': 'Pago',
+      'EM_PREPARO': 'Em Preparo',
+      'PRONTO': 'Pronto',
+      'CANCELADO': 'Cancelado'
+    };
+    return labels[status] || status;
   }
 
   isStatusAtLeast(status: string): boolean {

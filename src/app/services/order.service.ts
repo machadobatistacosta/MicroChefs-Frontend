@@ -32,9 +32,17 @@ export class OrderService {
     return this.http.get<any[]>(`${this.apiUrl}/exibir`).pipe(
       map(pedidos => pedidos.map(p => ({
         ...p,
-        status: p.status_do_pedido // Map status_do_pedido to status
+        status: p.statusDoPedido || p.status_do_pedido // Handle both possible mappings
       })))
     );
+  }
+
+  updateOrderStatus(id: number, status: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/atualizar`, { id, statusPedido: status });
+  }
+
+  cancelOrder(id: number): Observable<any> {
+    return this.updateOrderStatus(id, 'CANCELADO');
   }
 }
 

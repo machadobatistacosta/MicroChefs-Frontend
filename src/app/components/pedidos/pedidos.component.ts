@@ -22,7 +22,12 @@ import { Router, RouterModule } from '@angular/router';
           </div>
           <div class="order-footer">
              <span class="total">Total: R$ {{ p.valorTotal || 'N/A' }}</span>
-             <button class="btn btn-primary btn-sm" (click)="irParaAcompanhamento(p.id)">Acompanhar</button>
+             <div class="actions">
+               <button *ngIf="p.status === 'CRIADO' || p.status === 'AGUARDANDO_PAGAMENTO'" 
+                       class="btn btn-danger btn-sm me-2" 
+                       (click)="cancelarPedido(p.id)">Cancelar</button>
+               <button class="btn btn-primary btn-sm" (click)="irParaAcompanhamento(p.id)">Acompanhar</button>
+             </div>
           </div>
         </div>
       </div>
@@ -40,8 +45,15 @@ import { Router, RouterModule } from '@angular/router';
     .order-card { padding: 1.5rem; }
     .order-header { display: flex; justify-content: space-between; margin-bottom: 1rem; }
     .order-status { padding: 0.3rem 0.8rem; border-radius: 50px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
-    .order-status.PENDENTE { background: #f59e0b; color: #fff; }
+    .order-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; border-top: 1px solid var(--glass-border); padding-top: 1rem; }
+    .order-status.CRIADO { background: #f59e0b; color: #fff; }
+    .order-status.AGUARDANDO_PAGAMENTO { background: #f59e0b; color: #fff; }
+    .order-status.PAGO { background: #3b82f6; color: #fff; }
+    .order-status.EM_PREPARO { background: #8b5cf6; color: #fff; }
     .order-status.PRONTO { background: #10b981; color: #fff; }
+    .order-status.CANCELADO { background: #ef4444; color: #fff; }
+    .actions { display: flex; align-items: center; }
+    .me-2 { margin-right: 0.5rem; }
     .empty-state { text-align: center; padding: 5rem; }
     .empty-state p { margin-bottom: 2rem; color: var(--text-muted); }
   `]
@@ -58,7 +70,18 @@ export class PedidosComponent implements OnInit {
   }
 
   irParaAcompanhamento(id: number) {
-    console.log('Navegando para o pedido:', id);
     this.router.navigate(['/acompanhar', id]);
+  }
+
+  cancelarPedido(id: number) {
+    if (confirm('Tem certeza que deseja cancelar este pedido?')) {
+      this.orderService.cancelOrder(id).subscribe({
+        next: () => {
+          alert('Pedido cancelado com sucesso!');
+          this.ngOnInit(); // Refresh list
+        },
+        error: (err) => alert('Erro ao cancelar pedido.')
+      });
+    }
   }
 }
